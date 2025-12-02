@@ -5,7 +5,7 @@ from spotify_data import (
     get_spotify_audio_features,
     store_spotify_data
 )
-from lastfm_data import (
+from LastFM import (
     get_lastfm_stats,
     store_lastfm_data
 )

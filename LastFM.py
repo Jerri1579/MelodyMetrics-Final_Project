@@ -2,7 +2,7 @@
 #test 
 import requests
 
-LASTFM_API_KEY = ""
+LASTFM_API_KEY = "442a992e54445ae2b1d8e07b9241d707"
 
 def get_lastfm_stats(track_name, artist_name):
     url = "http://ws.audioscrobbler.com/2.0/"
