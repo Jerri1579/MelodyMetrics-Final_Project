@@ -24,16 +24,6 @@ def create_tables(cursor):
     """)
 
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS audio_features (
-            track_id TEXT PRIMARY KEY,
-            danceability REAL,
-            energy REAL,
-            tempo REAL,
-            FOREIGN KEY (track_id) REFERENCES tracks(track_id)
-        );
-    """)
-
-    cursor.execute("""
         CREATE TABLE IF NOT EXISTS lastfm_stats (
             track_id TEXT PRIMARY KEY,
             listeners INTEGER,

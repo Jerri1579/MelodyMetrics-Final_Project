@@ -25,6 +25,7 @@ def get_lastfm_stats(track_name, artist_name):
     tags_raw = data.get("toptags", {}).get("tag", [])
     if isinstance(tags_raw, dict):
         tags_raw = [tags_raw]
+
     tags = [t.get("name") for t in tags_raw if isinstance(t, dict)]
 
     return {
@@ -35,41 +36,18 @@ def get_lastfm_stats(track_name, artist_name):
         "tags": tags
     }
 
-def get_spotify_audio_features(track_ids, token):
-    headers = {"Authorization": f"Bearer {token}"}
-    url = "https://api.spotify.com/v1/audio-features"
-    features = {}
-
-    for i in range(0, len(track_ids), 100):
-        batch_ids = track_ids[i:i+100]
-        params = {"ids": ",".join(batch_ids)}
-
-        r = requests.get(url, headers=headers, params=params)
-        if not r.ok:
-            continue
-
-        for item in repsonse["audio_features"]:
-            if item:
-                features[item["id"]] = {
-                    "danceability": item.get("danceability"),
-                    "energy": item.get("energy"),
-                    "tempo": item.get("tempo"),
-                    "valence": item.get("valence")
-                }
-
-    return features
-
-
 def store_lastfm_data(cursor, stats):
-    cursor.execute(
-        "SELECT track_id FROM tracks JOIN artists USING(artist_id) WHERE tracks.name=? AND artists.name=?",
-        (stats["track_name"], stats["artist_name"])
-    )
+    cursor.execute("""
+        SELECT track_id
+        FROM tracks JOIN artists USING(artist_id)
+        WHERE tracks.name=? AND artists.name=?
+    """, (stats["track_name"], stats["artist_name"]))
+
     row = cursor.fetchone()
     if not row:
         return
 
-    cursor.execute(
-        "INSERT OR REPLACE INTO lastfm_stats VALUES (?, ?, ?, ?)",
-        (row[0], stats["listeners"], stats["playcount"], ", ".join(stats["tags"]))
-    )
+    cursor.execute("""
+        INSERT OR REPLACE INTO lastfm_stats
+        VALUES (?, ?, ?, ?)
+    """, (row[0], stats["listeners"], stats["playcount"], ", ".join(stats["tags"])))

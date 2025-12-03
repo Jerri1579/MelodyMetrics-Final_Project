@@ -11,7 +11,8 @@ def calculate_popularity_by_decade(cursor):
 
     decades = {}
     for year, play in rows:
-        if not year: continue
+        if not year:
+            continue
         d = (year // 10) * 10
         decades.setdefault(d, []).append(play)
 
@@ -26,7 +27,8 @@ def calculate_listeners_by_decade(cursor):
 
     dvals = {}
     for year, lis in rows:
-        if not year: continue
+        if not year:
+            continue
         d = (year // 10) * 10
         dvals.setdefault(d, []).append(lis)
 
@@ -41,7 +43,8 @@ def calculate_genre_trends(cursor):
 
     trends = {}
     for year, tags in rows:
-        if not year or not tags: continue
+        if not year or not tags:
+            continue
         d = (year // 10) * 10
         for tag in tags.split(","):
             tag = tag.strip()
@@ -93,3 +96,4 @@ def plot_genre_trends(data):
     plt.legend()
     plt.tight_layout()
     plt.show()
+
