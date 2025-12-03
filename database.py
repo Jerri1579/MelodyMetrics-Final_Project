@@ -32,3 +32,5 @@ def create_tables(cursor):
             FOREIGN KEY (track_id) REFERENCES tracks(track_id)
         );
     """)
+
+
