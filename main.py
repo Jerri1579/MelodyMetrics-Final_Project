@@ -1,5 +1,5 @@
+# main.py - Melody Metrics (PURE GENRE VERSION)
 
-# main.py - MelodyMetrics (No Audio Features)
 from database import connect_db, create_tables
 from spotify_data import get_spotify_tracks, store_spotify_data
 from LastFM import get_lastfm_stats, store_lastfm_data
@@ -9,47 +9,43 @@ from analysis_visuals import (
     calculate_genre_trends,
     write_popularity_csv,
     plot_popularity_by_decade,
-    plot_scatter_releaseyear_vs_listeners,
+    plot_listener_histogram,
     plot_genre_trends,
-    plot_artist_listeners_by_decade
-    
+    get_top_genres,
+    calculate_avg_listeners_by_genre_and_decade,
+    plot_listener_histogram,
+    plot_listeners_by_genre_and_decade
+
 )
 
+# ----------------------------------------------
+# 1. GENRE SEARCH LIST (15 GENRES)
+# ----------------------------------------------
+GENRE_QUERIES = [
+    "genre:pop",
+    "genre:rnb",
+    "genre:rock",
+    "genre:hip hop",
+    "genre:rap",
+    "genre:electropop",
+    "genre:alternative",
+    "genre:indie",
+    "genre:country",
+    "genre:latin",
+    "genre:gospel",
+    "genre:soul",
+    "genre:reggaeton",
+    "genre:metal",
+    "genre:edm",
+]
+
 def run_spotify_pipeline(cursor):
+   
     all_tracks = []
 
-    queries = [
-        
-    # Beyoncé by decade
-    "artist:Beyoncé year:2000-2009",
-    "artist:Beyoncé year:2010-2019",
-    "artist:Beyoncé year:2020-2024",
-
-    # Chris Brown
-    "artist:Chris Brown year:2000-2009",
-    "artist:Chris Brown year:2010-2019",
-    "artist:Chris Brown year:2020-2024",
-
-    # Maroon 5
-    "artist:Maroon 5 year:2000-2009",
-    "artist:Maroon 5 year:2010-2019",
-    "artist:Maroon 5 year:2020-2024",
-
-    # Paramore
-    "artist:Paramore year:2000-2009",
-    "artist:Paramore year:2010-2019",
-    "artist:Paramore year:2020-2024",
-
-    # Rihanna
-    "artist:Rihanna year:2000-2009",
-    "artist:Rihanna year:2010-2019",
-    "artist:Rihanna year:2020-2024",
-
-    ]
-
-    for q in queries:
-        print("Fetching from Spotify:", q)
-        tracks = get_spotify_tracks(q)
+    for q in GENRE_QUERIES:
+        print("Fetching", q)
+        tracks = get_spotify_tracks(q)  # limit=25 already applied
         store_spotify_data(cursor, tracks)
         all_tracks.extend(tracks)
 
@@ -58,51 +54,37 @@ def run_spotify_pipeline(cursor):
 
 def run_lastfm_pipeline(cursor, tracks):
    
-    seen_per_artist = {}
+    count = 0
 
     for t in tracks:
-        artist = t["artist"]
-
-        # Initialize counter
-        seen_per_artist.setdefault(artist, 0)
-
-        # Limit to 25 tracks per artist
-        if seen_per_artist[artist] >= 25:
-            continue
-
-        stats = get_lastfm_stats(t["name"], artist)
+        if count >= 25 * len(GENRE_QUERIES):   # reasonable safety limit
+            break
+        
+        stats = get_lastfm_stats(t["name"], t["artist"])
         store_lastfm_data(cursor, stats)
-
-        seen_per_artist[artist] += 1
-
-
+        count += 1
 
 
 def run_analysis(cursor):
-
-    # DEBUG: see which artist names we actually have
-    cursor.execute("SELECT DISTINCT name FROM artists")
-    print("Artists in DB:", [row[0] for row in cursor.fetchall()])
-    
-    # ... rest of your function ...
-
+    # --- Popularity by decade ---
     pop = calculate_popularity_by_decade(cursor)
-    listeners = calculate_listeners_by_decade(cursor)
-    genres = calculate_genre_trends(cursor)
-
     write_popularity_csv(pop, "popularity_by_decade.csv")
     plot_popularity_by_decade(pop)
-    plot_scatter_releaseyear_vs_listeners(listeners)
-    plot_genre_trends(genres)
 
-    
-    plot_artist_listeners_by_decade(cursor, [
-        "Beyoncé",
-        "Chris Brown",
-        "Maroon 5",
-        "Paramore",
-        "Rihanna"
-    ])
+    # --- Listener histogram ---
+    years, listeners = calculate_listeners_by_decade(cursor)
+    plot_listener_histogram((years, listeners))
+
+    # --- Genre trend (top 7 tags) ---
+    trends = calculate_genre_trends(cursor)
+    plot_genre_trends(trends, top_n=7)
+
+    # --- GENRE ANALYSIS: TOP 15 GENRES ---
+    top15 = get_top_genres(cursor, top_n=15)
+    print("Top 15 genres (LastFM tags):", top15)
+
+    genre_decade_data = calculate_avg_listeners_by_genre_and_decade(cursor, top15)
+    plot_listeners_by_genre_and_decade(genre_decade_data)
 
 
 def main():
@@ -118,6 +100,7 @@ def main():
 
     run_analysis(cursor)
     conn.close()
+
 
 if __name__ == "__main__":
     main()
