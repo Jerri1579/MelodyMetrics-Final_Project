@@ -244,3 +244,36 @@ def plot_listeners_by_genre_and_decade(genre_data):
     plt.legend(title="Decade")
     plt.tight_layout()
     plt.show()
+
+
+def plot_billboard_ranks(billboard_data):
+    if not billboard_data:
+        print("No Billboard data to plot.")
+        return
+
+    titles = [f"{d['title']} by {d['artist']}" for d in billboard_data]
+    ranks = [d['rank'] for d in billboard_data]
+
+    plt.figure(figsize=(12, 8))
+    plt.barh(titles, ranks, color='skyblue')
+    plt.xlabel("Rank")
+    plt.title("Billboard Hot 100 Ranks")
+    plt.gca().invert_yaxis() 
+    plt.tight_layout()
+    plt.show()
+
+def plot_rank_distrubution(cursor):
+    cursor.execute("SELECT rank FROM billboard_stats")
+
+    ranks = [r[0] for r in cursor.fetchall()]
+
+    plt.figure(figsize=(10, 6))
+    plt.hist(ranks, bins=20, edgecolor='black', alpha=0.7)
+    plt.title("Distribution of Billboard Hot 100 Ranks")
+    plt.xlabel("Rank")
+    plt.ylabel("Frequency")
+    plt.grid(axis='y', alpha=0.3)
+    plt.tight_layout()
+    plt.show()
+
+

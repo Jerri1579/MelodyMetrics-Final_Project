@@ -1,5 +1,6 @@
 # main.py - Melody Metrics (PURE GENRE VERSION)
-
+from billboard_api import fetch_billboard_hot100
+from database import insert_billboard_data
 from database import connect_db, create_tables
 from spotify_data import get_spotify_tracks, store_spotify_data
 from LastFM import get_lastfm_stats, store_lastfm_data
@@ -100,8 +101,16 @@ def main():
     run_lastfm_pipeline(cursor, tracks)
     conn.commit()
 
+    print("Fetching Billboard Hot 100 data...")
+    hot_100 = fetch_billboard_hot100(limit=50)
+    insert_billboard_data(cursor, hot_100)
+    conn.commit()
+    print("Billboard data insertion complete.")
+
     run_analysis(cursor)
     conn.close()
+
+
 
 
 if __name__ == "__main__":
