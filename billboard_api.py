@@ -1,7 +1,7 @@
-import billboard_api
+import billboard
 
 def get_top_song(chart_name="hot-100"):
-    chart = billboard_api.ChartData(chart_name)
+    chart = billboard.ChartData(chart_name)
     if not chart or len(chart) == 0:
         return None
 
@@ -17,7 +17,7 @@ def get_top_song(chart_name="hot-100"):
     return avg_data 
 
 def fetch_billboard_hot100(limit=50):
-    chart = billboard_api.ChartData("hot-100")
+    chart = billboard.ChartData("hot-100")
     top_songs = []
     for i in range(min(limit, len(chart))):
         song = chart[i]

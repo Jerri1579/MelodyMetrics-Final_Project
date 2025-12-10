@@ -15,7 +15,9 @@ from analysis_visuals import (
     get_top_genres,
     calculate_avg_listeners_by_genre_and_decade,
     plot_listener_histogram,
-    plot_listeners_by_genre_and_decade
+    plot_listeners_by_genre_and_decade,
+    plot_billboard_ranks,
+    plot_rank_distrubution,
 
 )
 
@@ -106,6 +108,17 @@ def main():
     insert_billboard_data(cursor, hot_100)
     conn.commit()
     print("Billboard data insertion complete.")
+
+    # --- Billboard visuals ---
+    try:
+        plot_billboard_ranks(hot_100)
+    except Exception as e:
+        print("Failed to plot Billboard ranks:", e)
+
+    try:
+        plot_rank_distrubution(cursor)
+    except Exception as e:
+        print("Failed to plot Billboard rank distribution:", e)
 
     run_analysis(cursor)
     conn.close()
