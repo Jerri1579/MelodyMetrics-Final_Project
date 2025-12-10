@@ -33,4 +33,15 @@ def create_tables(cursor):
         );
     """)
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS billboard_stats (
+            track_id TEXT PRIMARY KEY,
+            rank INTEGER,
+            last_week_rank INTEGER,
+            peak_rank INTEGER,
+            weeks_on_chart INTEGER,
+            FOREIGN KEY (track_id) REFERENCES tracks(track_id)
+        );
+    """)
+
 
