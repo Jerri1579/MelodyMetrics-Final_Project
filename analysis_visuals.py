@@ -263,9 +263,33 @@ def plot_billboard_ranks(billboard_data):
     plt.show()
 
 def plot_rank_distrubution(cursor):
-    cursor.execute("SELECT rank FROM billboard_stats")
+    # The billboard data is stored in the `BillboardHot100` table (see `database.py`).
+    try:
+        cursor.execute("SELECT rank FROM BillboardHot100")
+    except Exception:
+        # fallback to older table name if present
+        try:
+            cursor.execute("SELECT rank FROM billboard_stats")
+        except Exception as e:
+            print("Failed to query Billboard ranks from DB:", e)
+            return
 
-    ranks = [r[0] for r in cursor.fetchall()]
+    rows = cursor.fetchall()
+    if not rows:
+        print("No Billboard rank data found in DB to plot.")
+        return
+
+    # ensure numeric ranks
+    ranks = []
+    for (val,) in rows:
+        try:
+            ranks.append(int(val))
+        except Exception:
+            continue
+
+    if not ranks:
+        print("No numeric rank values available to plot.")
+        return
 
     plt.figure(figsize=(10, 6))
     plt.hist(ranks, bins=20, edgecolor='black', alpha=0.7)
