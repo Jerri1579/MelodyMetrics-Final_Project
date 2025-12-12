@@ -74,4 +74,3 @@ def insert_billboard_data(cursor, songs):
             s.get("last_position"),
             s.get("date")
         ))
-

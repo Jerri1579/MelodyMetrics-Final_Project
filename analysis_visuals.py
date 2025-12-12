@@ -221,6 +221,7 @@ def calculate_avg_listeners_by_genre_and_decade(cursor, genres):
     return avg_data
 
 
+
 def plot_listeners_by_genre_and_decade(genre_data):
  
     if not genre_data:
@@ -262,16 +263,14 @@ def plot_billboard_ranks(billboard_data):
     plt.tight_layout()
     plt.show()
 
-def plot_rank_distrubution(cursor):
-    # The billboard data is stored in the `BillboardHot100` table (see `database.py`).
+def plot_rank_distribution(cursor):
     try:
         cursor.execute("SELECT rank FROM BillboardHot100")
     except Exception:
-        # fallback to older table name if present
         try:
             cursor.execute("SELECT rank FROM billboard_stats")
         except Exception as e:
-            print("Failed to query Billboard ranks from DB:", e)
+            print("Failed to query Billboard ranks:", e)
             return
 
     rows = cursor.fetchall()
@@ -300,4 +299,45 @@ def plot_rank_distrubution(cursor):
     plt.tight_layout()
     plt.show()
 
+def get_combined_music_data(cursor, limit=100):
+    cursor.execute("""
+        SELECT 
+            t.name AS track_name,
+            t.artist AS track_artist,
+            ls.listeners,
+            ls.playcount,
+            b.rank AS billboard_rank
+        FROM tracks t
+        JOIN artists a ON t.artist_id = a.artist_id
+        JOIN lastfm_stats ls ON t.track_id = ls.track_id
+        LEFT JOIN BillboardHot100 b ON t.name = b.title AND a.name = b.artist
+        LIMIT?
+        """, (limit,))
+                
+    return cursor.fetchall()
+
+
+def plot_combined_music_data(rows):
+    listeners = []
+    ranks = []
+
+    for row in rows:
+        listener = row[3]
+        rank = row[4]
+        if rank is not None and listener is not None:
+            ranks.append(rank)
+            listeners.append(listener)
+    
+    if not ranks:
+        print("No combined data to plot for Billboard ranks vs. listeners.")
+        return      
+    
+    plt.figure(figsize=(10, 6))
+    plt.scatter(ranks, listeners, alpha=0.6)
+    plt.xlabel("Billboard Rank")
+    plt.ylabel("LastFM Listeners")
+    plt.title("Billboard Rank vs. LastFM Listeners")
+    plt.gca().invert_xaxis()
+    plt.tight_layout()
+    plt.show()
 

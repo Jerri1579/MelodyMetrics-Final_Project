@@ -1,4 +1,6 @@
 import billboard
+import requests
+
 
 def get_top_song(chart_name="hot-100"):
     chart = billboard.ChartData(chart_name)
@@ -17,6 +19,15 @@ def get_top_song(chart_name="hot-100"):
     return avg_data 
 
 def fetch_billboard_hot100(limit=50):
+
+    billboard.ChartData._headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/123.0.0.0 Safari/537.36"
+        )
+    }
+
     chart = billboard.ChartData("hot-100")
     top_songs = []
     for i in range(min(limit, len(chart))):

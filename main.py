@@ -17,7 +17,9 @@ from analysis_visuals import (
     plot_listener_histogram,
     plot_listeners_by_genre_and_decade,
     plot_billboard_ranks,
-    plot_rank_distrubution,
+    plot_rank_distribution,
+    get_combined_music_data,
+    plot_combined_music_data
 
 )
 
@@ -116,9 +118,16 @@ def main():
         print("Failed to plot Billboard ranks:", e)
 
     try:
-        plot_rank_distrubution(cursor)
+        plot_rank_distribution(cursor)
     except Exception as e:
         print("Failed to plot Billboard rank distribution:", e)
+
+
+    try:
+        rows = get_combined_music_data(cursor, limit=100)
+        plot_combined_music_data(rows)
+    except Exception as e:
+        print("Failed combined Billboard/Spotify/LastFM plot:", e)
 
     run_analysis(cursor)
     conn.close()
