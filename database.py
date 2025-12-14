@@ -45,32 +45,3 @@ def create_tables(cursor):
             date TEXT
         )
     """)
-
-def insert_billboard_data(cursor, songs):
-    """
-    Insert Hot 100 chart data into the database.
-    
-    songs: list of dictionaries, each with:
-        - rank
-        - title
-        - artist
-        - weeks_on_chart
-        - peak_position
-        - last_position
-        - date
-    """
-    for s in songs:
-        cursor.execute("""
-            INSERT INTO BillboardHot100 (
-                rank, title, artist, weeks_on_chart, 
-                peak_position, last_position, date
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (
-            s.get("rank"),
-            s.get("title"),
-            s.get("artist"),
-            s.get("weeks_on_chart"),
-            s.get("peak_position"),
-            s.get("last_position"),
-            s.get("date")
-        ))

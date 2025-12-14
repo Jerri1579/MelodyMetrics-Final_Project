@@ -1,6 +1,4 @@
 # main.py - Melody Metrics (PURE GENRE VERSION)
-from billboard_api import fetch_billboard_hot100
-from database import insert_billboard_data
 from database import connect_db, create_tables
 from spotify_data import get_spotify_tracks, store_spotify_data
 from LastFM import get_lastfm_stats, store_lastfm_data
@@ -15,11 +13,7 @@ from analysis_visuals import (
     get_top_genres,
     calculate_avg_listeners_by_genre_and_decade,
     plot_listener_histogram,
-    plot_listeners_by_genre_and_decade,
-    plot_billboard_ranks,
-    plot_rank_distribution,
-    get_combined_music_data,
-    plot_combined_music_data
+    plot_listeners_by_genre_and_decade
 
 )
 
@@ -105,29 +99,6 @@ def main():
     run_lastfm_pipeline(cursor, tracks)
     conn.commit()
 
-    print("Fetching Billboard Hot 100 data...")
-    hot_100 = fetch_billboard_hot100(limit=50)
-    insert_billboard_data(cursor, hot_100)
-    conn.commit()
-    print("Billboard data insertion complete.")
-
-    # --- Billboard visuals ---
-    try:
-        plot_billboard_ranks(hot_100)
-    except Exception as e:
-        print("Failed to plot Billboard ranks:", e)
-
-    try:
-        plot_rank_distribution(cursor)
-    except Exception as e:
-        print("Failed to plot Billboard rank distribution:", e)
-
-
-    try:
-        rows = get_combined_music_data(cursor, limit=100)
-        plot_combined_music_data(rows)
-    except Exception as e:
-        print("Failed combined Billboard/Spotify/LastFM plot:", e)
 
     run_analysis(cursor)
     conn.close()
