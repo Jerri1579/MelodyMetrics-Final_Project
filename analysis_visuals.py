@@ -247,3 +247,18 @@ def plot_listeners_by_genre_and_decade(genre_data):
     plt.show()
 
 
+def get_combined_music_data(cursor, limit=100):
+    cursor.execute(f"""
+        SELECT
+        t.name,
+        t.release_year,
+        lf.listeners,
+        lf.playcount,
+        g.lyrics
+        FROM tracks t
+        JOIN lastfm_stats lf USING(track_id)
+        JOIN genius_songs g USING(track_id)
+        WHERE lf.listeners IS NOT NULL
+    """)
+    
+    return cursor.fetchall()
