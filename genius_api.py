@@ -9,7 +9,7 @@ headers = {
     "Authorization": f"Bearer{GENIUS_TOKEN}"
 }
 
-def search_genius_track(track_name, artist_name):
+def search_song(track_name, artist_name):
     query = f"{track_name} {artist_name}"
     url = f"{GENIUS_API_URL}/search"
     params = {"q": query}
@@ -26,5 +26,18 @@ def search_genius_track(track_name, artist_name):
             return result
 
     return None
+
+def get_song_info(track_name, artist_name):
+    result = search_song(track_name, artist_name)
+    if not result:
+        return None
+
+    song_info = {
+        "id": result.get("id"),
+        "title": result.get("title"),
+        "artist": result.get("primary_artist", {}).get("name"),
+        "url": result.get("url")
+    }
+    return song_info
 
 

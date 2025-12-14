@@ -1,4 +1,6 @@
 # main.py - Melody Metrics (PURE GENRE VERSION)
+from genius_api import get_song_info, search_song
+from database import store_genius_data
 from database import connect_db, create_tables
 from spotify_data import get_spotify_tracks, store_spotify_data
 from LastFM import get_lastfm_stats, store_lastfm_data
@@ -63,6 +65,24 @@ def run_lastfm_pipeline(cursor, tracks):
         store_lastfm_data(cursor, stats)
         count += 1
 
+def run_genius_pipeline(cursor, tracks):
+    count = 0
+
+    for t in tracks:
+        if count >= 25 * len(GENRE_QUERIES): 
+            break
+
+        song_info = search_song(t["name"], t["artist"])
+        if not song_info:
+            continue
+
+        lyrics = get_song_info(song_info["id"])
+        if not lyrics:
+            continue
+
+        store_genius_data(cursor, t["id"], lyrics)
+        count += 1
+
 
 def run_analysis(cursor):
     # --- Popularity by decade ---
@@ -99,6 +119,8 @@ def main():
     run_lastfm_pipeline(cursor, tracks)
     conn.commit()
 
+    run_genius_pipeline(cursor, tracks)
+    conn.commit()
 
     run_analysis(cursor)
     conn.close()

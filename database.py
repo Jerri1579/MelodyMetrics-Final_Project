@@ -33,15 +33,18 @@ def create_tables(cursor):
         );
     """)
 
+
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS BillboardHot100 (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            rank INTEGER,
-            title TEXT,
-            artist TEXT,
-            weeks_on_chart INTEGER,
-            peak_position INTEGER,
-            last_position INTEGER,
-            date TEXT
-        )
+        CREATE TABLE IF NOT EXISTS genius_songs (
+        genius_song_id INTEGER PRIMARY KEY,
+        track_id TEXT,
+        lyrics TEXT,
+        FOREIGN KEY (track_id) REFERENCES tracks(track_id)
+    );
     """)
+
+def store_genius_data(cursor, track_id, lyrics):
+    cursor.execute("""
+        INSERT OR IGNORE INTO genius_songs (track_id, lyrics)
+        VALUES (?, ?)
+    """, (track_id, lyrics)) 
