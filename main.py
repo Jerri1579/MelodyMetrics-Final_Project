@@ -103,9 +103,9 @@ def run_analysis(cursor):
     genre_decade_data = calculate_avg_listeners_by_genre_and_decade(cursor, top15)
     plot_listeners_by_genre_and_decade(genre_decade_data)
 
-
 def main():
     conn, cursor = connect_db("music_project.db")
+
     create_tables(cursor)
     conn.commit()
 
@@ -119,16 +119,15 @@ def main():
     conn.commit()
 
     run_analysis(cursor)
-    conn.close()
-
-    run_audiodb_pipeline(cursor)
     conn.commit()
 
-    plot_audiodb_tempo_histogram("music.db")
+    plot_audiodb_tempo_histogram("music_project.db")
 
-    export_audiodb_to_csv  
+    export_audiodb_to_csv(cursor, "audiodb_export.csv")
+    conn.commit()
 
     conn.close()
+
 
 
 

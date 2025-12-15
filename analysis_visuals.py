@@ -274,25 +274,31 @@ def plot_listeners_by_genre_and_decade(genre_data):
     plt.show()
 
 
-def plot_audiodb_tempo_histogram():
-    conn = sqlite3.connect("music.db")
 
-    query = """
-    SELECT intTempo
-    FROM audio_db
-    WHERE intTempo IS NOT NULL
-    """
+def plot_audiodb_tempo_histogram(db_name):
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
 
-    df = pd.read_sql_query(query, conn)
+    cursor.execute("""
+        SELECT tempo
+        FROM audiodb_tracks
+        WHERE tempo IS NOT NULL
+    """)
+    tempos = [row[0] for row in cursor.fetchall()]
+
     conn.close()
 
-    plt.figure()
-    plt.hist(df["intTempo"], bins=15)
+    if not tempos:
+        print("No tempo data found to plot.")
+        return
+
+    plt.hist(tempos, bins=20)
     plt.xlabel("Tempo (BPM)")
     plt.ylabel("Number of Tracks")
-    plt.title("Distribution of Song Tempo (AudioDB)")
+    plt.title("AudioDB Track Tempo Distribution")
     plt.show()
-import matplotlib.pyplot as plt
+
+
 
 def plot_audiodb_top_genres(cursor, top_n=10):
     cursor.execute("""
