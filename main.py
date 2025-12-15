@@ -16,7 +16,8 @@ from analysis_visuals import (
     calculate_avg_listeners_by_genre_and_decade,
     plot_listener_histogram,
     plot_listeners_by_genre_and_decade,
-    plot_audiodb_tempo_histogram
+    plot_audiodb_tempo_histogram,
+    export_audiodb_to_csv
 )
 
 # ----------------------------------------------
@@ -124,6 +125,10 @@ def main():
     conn.commit()
 
     plot_audiodb_tempo_histogram("music.db")
+
+    export_audiodb_to_csv  
+
+    conn.close()
 
 
 

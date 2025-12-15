@@ -89,6 +89,27 @@ def write_popularity_csv(data, filename):
             writer.writerow([d, data[d]])
 
 
+def export_audiodb_to_csv(cursor, filename="audiodb_artists.csv"):
+    cursor.execute("""
+        SELECT genre, style, country, mood, biography
+        FROM audiodb_artists
+    """)
+
+    rows = cursor.fetchall()
+
+    if not rows:
+        print("No AudioDB data found to write to CSV.")
+        return
+
+    with open(filename, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["genre", "style", "country", "mood", "biography"])
+        writer.writerows(rows)
+
+    print(f"AudioDB data written to {filename}")
+
+
+
 
 def plot_popularity_by_decade(data):
     if not data:
