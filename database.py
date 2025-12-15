@@ -33,18 +33,16 @@ def create_tables(cursor):
         );
     """)
 
-
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS genius_songs (
-        genius_song_id INTEGER PRIMARY KEY,
-        track_id TEXT,
-        lyrics TEXT,
-        FOREIGN KEY (track_id) REFERENCES tracks(track_id)
-    );
+    CREATE TABLE IF NOT EXISTS audiodb_artists (
+        artist_id TEXT PRIMARY KEY,
+        genre TEXT,
+        style TEXT,
+        country TEXT,
+        mood TEXT,
+        biography TEXT,
+        FOREIGN KEY (artist_id) REFERENCES artists(artist_id)
+        );
     """)
 
-def store_genius_data(cursor, track_id, lyrics):
-    cursor.execute("""
-        INSERT OR IGNORE INTO genius_songs (track_id, lyrics)
-        VALUES (?, ?)
-    """, (track_id, lyrics)) 
+

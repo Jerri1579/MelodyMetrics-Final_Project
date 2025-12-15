@@ -1,6 +1,5 @@
 # main.py - Melody Metrics (PURE GENRE VERSION)
-from genius_api import get_song_info, search_song
-from database import store_genius_data
+from audiodb import get_artist_info, store_audiodb_data
 from database import connect_db, create_tables
 from spotify_data import get_spotify_tracks, store_spotify_data
 from LastFM import get_lastfm_stats, store_lastfm_data
@@ -16,7 +15,6 @@ from analysis_visuals import (
     calculate_avg_listeners_by_genre_and_decade,
     plot_listener_histogram,
     plot_listeners_by_genre_and_decade
-
 )
 
 # ----------------------------------------------
@@ -65,23 +63,19 @@ def run_lastfm_pipeline(cursor, tracks):
         store_lastfm_data(cursor, stats)
         count += 1
 
-def run_genius_pipeline(cursor, tracks):
-    count = 0
+def run_audiodb_pipeline(cursor):
+    cursor.execute("""
+        SELECT artist_id, name
+        FROM artists
+    """)
+    artists = cursor.fetchall()
 
-    for t in tracks:
-        if count >= 25 * len(GENRE_QUERIES): 
-            break
-
-        song_info = search_song(t["name"], t["artist"])
-        if not song_info:
-            continue
-
-        lyrics = get_song_info(song_info["id"])
-        if not lyrics:
-            continue
-
-        store_genius_data(cursor, t["id"], lyrics)
-        count += 1
+    for artist_id, name in artists:
+        try:
+            data = get_artist_info(name)
+            store_audiodb_data(cursor, artist_id, data)
+        except Exception as e:
+            print(f"AudioDB error for {name}: {e}")
 
 
 def run_analysis(cursor):
@@ -106,8 +100,6 @@ def run_analysis(cursor):
     plot_listeners_by_genre_and_decade(genre_decade_data)
 
 
-
-
 def main():
     conn, cursor = connect_db("music_project.db")
     create_tables(cursor)
@@ -119,7 +111,7 @@ def main():
     run_lastfm_pipeline(cursor, tracks)
     conn.commit()
 
-    run_genius_pipeline(cursor, tracks)
+    run_audiodb_pipeline(cursor)
     conn.commit()
 
     run_analysis(cursor)
