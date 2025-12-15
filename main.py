@@ -3,6 +3,7 @@ from audiodb import get_artist_info, store_audiodb_data
 from database import connect_db, create_tables
 from spotify_data import get_spotify_tracks, store_spotify_data
 from LastFM import get_lastfm_stats, store_lastfm_data
+from analysis_visuals import plot_audiodb_top_genres
 from analysis_visuals import (
     calculate_popularity_by_decade,
     calculate_listeners_by_decade,
@@ -14,7 +15,8 @@ from analysis_visuals import (
     get_top_genres,
     calculate_avg_listeners_by_genre_and_decade,
     plot_listener_histogram,
-    plot_listeners_by_genre_and_decade
+    plot_listeners_by_genre_and_decade,
+    plot_audiodb_tempo_histogram
 )
 
 # ----------------------------------------------
@@ -83,6 +85,7 @@ def run_analysis(cursor):
     pop = calculate_popularity_by_decade(cursor)
     write_popularity_csv(pop, "popularity_by_decade.csv")
     plot_popularity_by_decade(pop)
+    plot_audiodb_top_genres(cursor, top_n=10)
 
     # --- Listener histogram ---
     years, listeners = calculate_listeners_by_decade(cursor)
@@ -116,6 +119,13 @@ def main():
 
     run_analysis(cursor)
     conn.close()
+
+    run_audiodb_pipeline(cursor)
+    conn.commit()
+
+    plot_audiodb_tempo_histogram("music.db")
+
+
 
 
 

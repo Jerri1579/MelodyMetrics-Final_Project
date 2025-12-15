@@ -3,6 +3,12 @@
 import csv
 import matplotlib.pyplot as plt
 import numpy as np
+import sqlite3
+import pandas as pd
+
+
+
+
 
 
 def calculate_popularity_by_decade(cursor):
@@ -245,4 +251,52 @@ def plot_listeners_by_genre_and_decade(genre_data):
     plt.legend(title="Decade")
     plt.tight_layout()
     plt.show()
+
+
+def plot_audiodb_tempo_histogram():
+    conn = sqlite3.connect("music.db")
+
+    query = """
+    SELECT intTempo
+    FROM audio_db
+    WHERE intTempo IS NOT NULL
+    """
+
+    df = pd.read_sql_query(query, conn)
+    conn.close()
+
+    plt.figure()
+    plt.hist(df["intTempo"], bins=15)
+    plt.xlabel("Tempo (BPM)")
+    plt.ylabel("Number of Tracks")
+    plt.title("Distribution of Song Tempo (AudioDB)")
+    plt.show()
+import matplotlib.pyplot as plt
+
+def plot_audiodb_top_genres(cursor, top_n=10):
+    cursor.execute("""
+        SELECT genre, COUNT(*) AS cnt
+        FROM audiodb_artists
+        WHERE genre IS NOT NULL AND TRIM(genre) <> ''
+        GROUP BY genre
+        ORDER BY cnt DESC
+        LIMIT ?
+    """, (top_n,))
+
+    rows = cursor.fetchall()
+    if not rows:
+        print("No AudioDB genre data found to plot.")
+        return
+
+    genres = [r[0] for r in rows][::-1]
+    counts = [r[1] for r in rows][::-1]
+
+    plt.figure(figsize=(9, 5))
+    plt.barh(genres, counts)
+    plt.title("Top Genres from AudioDB (Artist Data)")
+    plt.xlabel("Number of Artists")
+    plt.ylabel("Genre")
+    plt.tight_layout()
+    plt.show()
+
 
