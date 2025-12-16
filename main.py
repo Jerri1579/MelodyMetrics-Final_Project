@@ -16,7 +16,6 @@ from analysis_visuals import (
     calculate_avg_listeners_by_genre_and_decade,
     plot_listener_histogram,
     plot_listeners_by_genre_and_decade,
-    plot_audiodb_tempo_histogram,
     export_audiodb_to_csv
 )
 
@@ -50,7 +49,6 @@ def run_spotify_pipeline(cursor):
         tracks = get_spotify_tracks(q)  # limit=25 already applied
         store_spotify_data(cursor, tracks)
         all_tracks.extend(tracks)
-
     return all_tracks
 
 
@@ -120,8 +118,6 @@ def main():
 
     run_analysis(cursor)
     conn.commit()
-
-    plot_audiodb_tempo_histogram("music_project.db")
 
     export_audiodb_to_csv(cursor, "audiodb_export.csv")
     conn.commit()

@@ -14,15 +14,17 @@ def create_tables(cursor):
     """)
 
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS tracks (
-            track_id TEXT PRIMARY KEY,
-            name TEXT,
-            artist_id TEXT,
-            release_year INTEGER,
-            FOREIGN KEY (artist_id) REFERENCES artists(artist_id)
-        );
-    """)
-
+    CREATE TABLE IF NOT EXISTS tracks (
+        track_id TEXT PRIMARY KEY,
+        name TEXT,
+        artist_id TEXT,
+        release_year INTEGER,
+        tempo REAL,
+        danceability REAL,
+        energy REAL,
+        FOREIGN KEY (artist_id) REFERENCES artists(artist_id)
+    );
+""")
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS lastfm_stats (
             track_id TEXT PRIMARY KEY,

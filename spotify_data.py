@@ -28,13 +28,21 @@ def get_spotify_access_token():
 def get_auth_headers():
     return {"Authorization": f"Bearer {get_spotify_access_token()}"}
 
+def get_audio_features(track_id):
+    url = f"https://api.spotify.com/v1/audio-features/{track_id}"
+    r = requests.get(url, headers=get_auth_headers())
+    if not r.ok:
+        return None
+    return r.json()
+
 def get_spotify_tracks(query):
     url = "https://api.spotify.com/v1/search"
     params = {"q": query, "type": "track", "limit": 25}
+
     r = requests.get(url, headers=get_auth_headers(), params=params)
     if not r.ok:
         print("Search error:", r.text)
-        r.raise_for_status()
+        return []   # 🔑 NEVER return None
 
     items = r.json().get("tracks", {}).get("items", [])
     results = []
@@ -44,14 +52,21 @@ def get_spotify_tracks(query):
         release = album.get("release_date", "1900")
         year = int(release[:4]) if release[:4].isdigit() else 1900
 
+        track_id = item.get("id")
+        if not track_id:
+            continue
+
+        
         results.append({
-            "id": item.get("id"),
+            "id": track_id,
             "name": item.get("name"),
             "artist": item.get("artists", [{}])[0].get("name"),
             "artist_id": item.get("artists", [{}])[0].get("id"),
-            "release_year": year,
+            "release_year": year
         })
+
     return results
+
 
 def store_spotify_data(cursor, tracks):
     # detect schema shape for backward/forward compatibility
@@ -100,6 +115,7 @@ def store_spotify_data(cursor, tracks):
         else:
             # old tracks schema uses string track_id as primary key
             cursor.execute("""
-                INSERT OR REPLACE INTO tracks (track_id, name, artist_id, release_year)
+                INSERT OR REPLACE INTO tracks 
+                (track_id, name, artist_id, release_year)
                 VALUES (?, ?, ?, ?)
             """, (t["id"], t["name"], artist_db_id, t["release_year"]))
