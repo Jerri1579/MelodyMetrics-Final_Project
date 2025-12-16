@@ -67,55 +67,26 @@ def get_spotify_tracks(query):
 
     return results
 
-
 def store_spotify_data(cursor, tracks):
-    # detect schema shape for backward/forward compatibility
-    cursor.execute("PRAGMA table_info(artists)")
-    artist_cols = [r[1] for r in cursor.fetchall()]
-    cursor.execute("PRAGMA table_info(tracks)")
-    track_cols = [r[1] for r in cursor.fetchall()]
+        for t in tracks:
+          
+            cursor.execute(
+                "INSERT OR IGNORE INTO artists (spotify_id, name) VALUES (?, ?)",
+                (t["artist_id"], t["artist"])
+            )
+            cursor.execute("SELECT id FROM artists WHERE spotify_id = ?", (t["artist_id"],))
+            artist_db_id = cursor.fetchone()[0]
 
-    use_new_artist_cols = 'spotify_artist_id' in artist_cols
-    use_new_track_cols = 'spotify_track_id' in track_cols
-
-    for t in tracks:
-        if use_new_artist_cols:
-            # new schema: artists has integer PK and spotify_artist_id
-            try:
-                cursor.execute(
-                    "INSERT OR IGNORE INTO artists (spotify_artist_id, name) VALUES (?, ?)",
-                    (t["artist_id"], t["artist"])
-                )
-            except Exception:
-                # fallback to older insert if schema differs
-                cursor.execute("INSERT OR IGNORE INTO artists VALUES (?, ?)", (t["artist_id"], t["artist"]))
-
-            cursor.execute("SELECT artist_id FROM artists WHERE spotify_artist_id = ?", (t["artist_id"],))
-            row = cursor.fetchone()
-            artist_db_id = row[0] if row else None
-        else:
-            # old schema: artist_id is the Spotify id string primary key
-            cursor.execute("INSERT OR IGNORE INTO artists VALUES (?, ?)", (t["artist_id"], t["artist"]))
-            artist_db_id = t["artist_id"]
-
-        if use_new_track_cols:
-            # new tracks table stores spotify_track_id and integer artist_id
-            cursor.execute("SELECT track_id FROM tracks WHERE spotify_track_id = ?", (t["id"],))
+          
+            cursor.execute("SELECT id FROM tracks WHERE spotify_id = ?", (t["id"],))
             track_row = cursor.fetchone()
             if track_row:
                 cursor.execute(
-                    "UPDATE tracks SET name = ?, artist_id = ?, release_year = ? WHERE track_id = ?",
+                    "UPDATE tracks SET name = ?, artist_id = ?, release_year = ? WHERE id = ?",
                     (t["name"], artist_db_id, t["release_year"], track_row[0])
                 )
             else:
                 cursor.execute(
-                    "INSERT INTO tracks (spotify_track_id, name, artist_id, release_year) VALUES (?, ?, ?, ?)",
+                    "INSERT INTO tracks (spotify_id, name, artist_id, release_year) VALUES (?, ?, ?, ?)",
                     (t["id"], t["name"], artist_db_id, t["release_year"]) 
                 )
-        else:
-            # old tracks schema uses string track_id as primary key
-            cursor.execute("""
-                INSERT OR REPLACE INTO tracks 
-                (track_id, name, artist_id, release_year)
-                VALUES (?, ?, ?, ?)
-            """, (t["id"], t["name"], artist_db_id, t["release_year"]))

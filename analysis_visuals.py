@@ -6,19 +6,14 @@ import numpy as np
 import sqlite3
 import pandas as pd
 
-
-
-
-
-
 def calculate_popularity_by_decade(cursor):
     """
     Returns {decade: avg_playcount} using Spotify + LastFM.
     """
     cursor.execute("""
-        SELECT release_year, playcount
+        SELECT tracks.release_year, lastfm_stats.playcount
         FROM tracks
-        JOIN lastfm_stats USING(track_id)
+        JOIN lastfm_stats ON tracks.id = lastfm_stats.track_id
     """)
     rows = cursor.fetchall()
 
@@ -37,7 +32,7 @@ def calculate_listeners_by_decade(cursor):
     cursor.execute("""
         SELECT release_year, listeners
         FROM tracks
-        JOIN lastfm_stats USING(track_id)
+        JOIN lastfm_stats ON tracks.id = lastfm_stats.track_id
         WHERE release_year IS NOT NULL
     """)
     rows = cursor.fetchall()
@@ -59,7 +54,7 @@ def calculate_genre_trends(cursor):
     cursor.execute("""
         SELECT release_year, top_tags
         FROM tracks
-        JOIN lastfm_stats USING(track_id)
+        JOIN lastfm_stats ON tracks.id = lastfm_stats.track_id
     """)
     rows = cursor.fetchall()
 
@@ -214,7 +209,7 @@ def calculate_avg_listeners_by_genre_and_decade(cursor, genres):
     cursor.execute("""
         SELECT t.release_year, ls.listeners, ls.top_tags
         FROM tracks t
-        JOIN lastfm_stats ls USING(track_id)
+        JOIN lastfm_stats ls ON t.id = ls.track_id
         WHERE t.release_year IS NOT NULL
     """)
     rows = cursor.fetchall()

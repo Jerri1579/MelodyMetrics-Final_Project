@@ -38,16 +38,22 @@ def get_lastfm_stats(track_name, artist_name):
 
 def store_lastfm_data(cursor, stats):
     cursor.execute("""
-        SELECT track_id
-        FROM tracks JOIN artists USING(artist_id)
+        SELECT tracks.id
+        FROM tracks
+        JOIN artists ON tracks.artist_id = artists.id
         WHERE tracks.name=? AND artists.name=?
     """, (stats["track_name"], stats["artist_name"]))
 
     row = cursor.fetchone()
     if not row:
-        return
+        return 
+
+    track_db_id = row[0]
 
     cursor.execute("""
         INSERT OR REPLACE INTO lastfm_stats
+        (track_id, listeners, playcount, top_tags)
         VALUES (?, ?, ?, ?)
-    """, (row[0], stats["listeners"], stats["playcount"], ", ".join(stats["tags"])))
+    """, (track_db_id, stats["listeners"], stats["playcount"], ", ".join(stats["tags"])))
+
+    cursor.connection.commit()

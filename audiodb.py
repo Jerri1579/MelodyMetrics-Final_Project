@@ -27,6 +27,7 @@ def get_artist_info(artist_name):
         "biography": artist.get("strBiographyEN")
     }
 
+
 def store_audiodb_data(cursor, artist_id, audiodb_data):
     if not audiodb_data:
         return
@@ -37,9 +38,33 @@ def store_audiodb_data(cursor, artist_id, audiodb_data):
         VALUES (?, ?, ?, ?, ?, ?)
     """, (
         artist_id,
-        audiodb_data["genre"],
-        audiodb_data["style"],
-        audiodb_data["country"],
-        audiodb_data["mood"],
-        audiodb_data["biography"]
+        audiodb_data.get("genre"),
+        audiodb_data.get("style"),
+        audiodb_data.get("country"),
+        audiodb_data.get("mood"),
+        audiodb_data.get("biography")
     ))
+    if not audiodb_data:
+        return
+
+    cursor.execute("SELECT id FROM artists WHERE spotify_id = ?", (artist_id,))
+    row = cursor.fetchone()
+    if not row:
+        return  
+    artist_db_id = row[0]
+
+    
+    cursor.execute("""
+        INSERT OR REPLACE INTO audiodb_artists
+        (artist_id, genre, style, country, mood, biography)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (
+        artist_db_id,
+        audiodb_data.get("genre"),
+        audiodb_data.get("style"),
+        audiodb_data.get("country"),
+        audiodb_data.get("mood"),
+        audiodb_data.get("biography")
+    ))
+
+    cursor.connection.commit()

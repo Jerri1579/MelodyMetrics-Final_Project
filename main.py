@@ -14,7 +14,6 @@ from analysis_visuals import (
     plot_genre_trends,
     get_top_genres,
     calculate_avg_listeners_by_genre_and_decade,
-    plot_listener_histogram,
     plot_listeners_by_genre_and_decade,
     export_audiodb_to_csv
 )
@@ -64,19 +63,35 @@ def run_lastfm_pipeline(cursor, tracks):
         store_lastfm_data(cursor, stats)
         count += 1
 
-def run_audiodb_pipeline(cursor):
-    cursor.execute("""
-        SELECT artist_id, name
-        FROM artists
-    """)
-    artists = cursor.fetchall()
 
-    for artist_id, name in artists:
-        try:
-            data = get_artist_info(name)
-            store_audiodb_data(cursor, artist_id, data)
-        except Exception as e:
-            print(f"AudioDB error for {name}: {e}")
+import time
+
+def run_audiodb_pipeline(cursor):
+    cursor.execute("SELECT id, name FROM artists")
+    artists = cursor.fetchall() 
+
+    if not artists:
+        print("No artists found in the database.")
+        return
+
+    stored_count = 0
+    skipped_count = 0
+
+    for artist_db_id, artist_name in artists:
+        audiodb_info = get_artist_info(artist_name)
+        if not audiodb_info:
+            skipped_count += 1
+            print(f"No AudioDB info found for {artist_name}")
+            continue
+
+        store_audiodb_data(cursor, artist_db_id, audiodb_info)
+        stored_count += 1
+        print(f"Stored AudioDB data for {artist_name}")
+
+        time.sleep(0.5)
+
+    cursor.connection.commit()
+    print(f"AudioDB pipeline finished. Stored: {stored_count}, Skipped: {skipped_count}")
 
 
 def run_analysis(cursor):
@@ -119,7 +134,9 @@ def main():
     run_analysis(cursor)
     conn.commit()
 
-    export_audiodb_to_csv(cursor, "audiodb_export.csv")
+    export_audiodb_to_csv(cursor)
+    plot_audiodb_top_genres(cursor)
+
     conn.commit()
 
     conn.close()
